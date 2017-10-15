@@ -4,6 +4,8 @@ from __future__ import division
 import sys
 import os
 import random
+import time
+import itertools
 
 class SpamClassifier(object):
 
@@ -76,6 +78,8 @@ class SpamClassifier(object):
 
     def classify(self, doc):
         words = filter(lambda w: w in self.vocabulary,doc.split(' '))
+        if not words:
+            return self.classes.keys()[int(random.random())]
         hypotesys = 0
         max_prob = -1
         for doc_class in self.classes:
@@ -85,11 +89,41 @@ class SpamClassifier(object):
                 hypotesys = doc_class
         return hypotesys
 
-def k_fold_cross_validation(classifier, data, k):
+def k_fold_cross_validation(data, k):
     #partitioning data
     size = len(data)
     datasets = []
     for i in range(k):
+        datasets.append([])
+    random.seed(time.time())
+    while data:
+        i = int(random.random()*k)
+        datasets[i].append(data.pop())
+
+    accuracy = 0
+    for i in range(k):
+        correct = 0
+        done = 0
+
+        training = itertools.chain.from_iterable([datasets[j] for j in filter(lambda j: j != i, range(k))])
+        testing = datasets[i]
+        spam = SpamClassifier()
+        spam.learn(training)
+        for test in testing:
+            done += 1
+            expected = test.split('\t')[0]
+            doc = test.split('\t')[1].strip()
+            if spam.classify(doc) == expected:
+                correct += 1
+        accuracy += (correct / done)
+        sys.stdout.write('\r|'+('='*i)+('  '*(k-i-1)+'|'))
+        sys.stdout.flush()
+
+    print '\n[+] K-Fold accuracy:', accuracy / k
+
+
+
+
 
 
 
@@ -100,12 +134,10 @@ def main():
     if not os.path.exists(sys.argv[1]):
         sys.exit('ERROR: Database %s was not found!' % sys.argv[1])
 
-    spam = SpamClassifier()
-
     database = open(sys.argv[1],'r').readlines()
     #print database.readlines()
 
-    k_fold_cross_validation(spam, database, 10)
+    k_fold_cross_validation(database, 100)
 
     #spam.learn(database)
     #doc = 'I\'m gonna be hhome soon and i don\'t want you and me to talk about you and this stuff anymore tonight, k? I\'ve cried enough todayyyyyyyy.'
