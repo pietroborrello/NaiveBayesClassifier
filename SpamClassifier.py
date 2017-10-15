@@ -3,6 +3,7 @@
 from __future__ import division
 import sys
 import os
+import random
 
 class SpamClassifier(object):
 
@@ -65,23 +66,30 @@ class SpamClassifier(object):
             for doc_class in self.classes:
                 if doc_class not in self.vocabulary[word]:
                     self.vocabulary[word][doc_class] = 0;
-                self.vocabulary[word][doc_class] =
-                    (self.vocabulary[word][doc_class] + 1)/(self.words_num[doc_class] + voc_size)
-
-
-
-
+                self.vocabulary[word][doc_class] = (self.vocabulary[word][doc_class] + 1)/(self.words_num[doc_class] + voc_size)
 
 
     def learn(self, database):
         self.parse_database(database)
         self.compute_probabilities()
-        print self.vocabulary
+        #print self.vocabulary
 
+    def classify(self, doc):
+        words = filter(lambda w: w in self.vocabulary,doc.split(' '))
+        hypotesys = 0
+        max_prob = -1
+        for doc_class in self.classes:
+            prob = self.classes[doc_class]* reduce((lambda x,y: x * y), map(lambda w: self.vocabulary[w][doc_class], words))
+            if prob > max_prob:
+                max_prob = prob
+                hypotesys = doc_class
+        return hypotesys
 
-
-
-
+def k_fold_cross_validation(classifier, data, k):
+    #partitioning data
+    size = len(data)
+    datasets = []
+    for i in range(k):
 
 
 
@@ -97,7 +105,11 @@ def main():
     database = open(sys.argv[1],'r').readlines()
     #print database.readlines()
 
-    spam.learn(database)
+    k_fold_cross_validation(spam, database, 10)
+
+    #spam.learn(database)
+    #doc = 'I\'m gonna be hhome soon and i don\'t want you and me to talk about you and this stuff anymore tonight, k? I\'ve cried enough todayyyyyyyy.'
+    #print spam.classify(doc)
 
 
 
