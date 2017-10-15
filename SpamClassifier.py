@@ -61,7 +61,12 @@ class SpamClassifier(object):
 
         #compute probability of a word to be in a class
         voc_size = len(self.vocabulary)
-        for 
+        for word in self.vocabulary:
+            for doc_class in self.classes:
+                if doc_class not in self.vocabulary[word]:
+                    self.vocabulary[word][doc_class] = 0;
+                self.vocabulary[word][doc_class] =
+                    (self.vocabulary[word][doc_class] + 1)/(self.words_num[doc_class] + voc_size)
 
 
 
