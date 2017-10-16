@@ -1,11 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-from __future__ import division
+#from __future__ import division
 import sys
 import os
 import random
 import time
 import itertools
+import functools
 
 class SpamClassifier(object):
 
@@ -27,8 +28,9 @@ class SpamClassifier(object):
     def parse_database(self, database):
 
         for line in database:
-            doc_class = line.split('\t')[0]
-            doc = line.split('\t')[1].strip()
+            l = line.split('\t',1)
+            doc_class = l[0]
+            doc = l[1].strip()
             words = doc.split(' ')
 
             if doc_class not in self.docs:
@@ -42,11 +44,11 @@ class SpamClassifier(object):
 
                 #init vocabulary counting word seen for each class
                 for word in words:
-                    if word.strip() not in self.vocabulary:
-                        self.vocabulary[word.strip()] = {}
-                    if doc_class not in self.vocabulary[word.strip()]:
-                        self.vocabulary[word.strip()][doc_class] = 0
-                    self.vocabulary[word.strip()][doc_class] += 1
+                    if word not in self.vocabulary:
+                        self.vocabulary[word] = {}
+                    if doc_class not in self.vocabulary[word]:
+                        self.vocabulary[word][doc_class] = 0
+                    self.vocabulary[word][doc_class] += 1
 
 
     def compute_probabilities(self):
@@ -70,20 +72,20 @@ class SpamClassifier(object):
                     self.vocabulary[word][doc_class] = 0;
                 self.vocabulary[word][doc_class] = (self.vocabulary[word][doc_class] + 1)/(self.words_num[doc_class] + voc_size)
 
-
     def learn(self, database):
         self.parse_database(database)
         self.compute_probabilities()
         #print self.vocabulary
 
     def classify(self, doc):
-        words = filter(lambda w: w in self.vocabulary,doc.split(' '))
-        if not words:
-            return self.classes.keys()[int(random.random())]
+        words = doc.split(' ')
         hypotesys = 0
         max_prob = -1
         for doc_class in self.classes:
-            prob = self.classes[doc_class]* reduce((lambda x,y: x * y), map(lambda w: self.vocabulary[w][doc_class], words))
+            prob = self.classes[doc_class]
+            for word in words:
+                if word in self.vocabulary:
+                    prob*=self.vocabulary[word][doc_class]
             if prob > max_prob:
                 max_prob = prob
                 hypotesys = doc_class
@@ -116,10 +118,10 @@ def k_fold_cross_validation(data, k):
             if spam.classify(doc) == expected:
                 correct += 1
         accuracy += (correct / done)
-        sys.stdout.write('\r|'+('='*i)+('  '*(k-i-1)+'|'))
+        sys.stdout.write('\r|'+('='*i)+(' '*(k-i-1)+'|'))
         sys.stdout.flush()
 
-    print '\n[+] K-Fold accuracy:', accuracy / k
+    print ('\n[+] K-Fold accuracy:', accuracy / k)
 
 
 
@@ -128,13 +130,17 @@ def k_fold_cross_validation(data, k):
 
 
 def main():
+    database_path = 'smsspamcollection/SMSSpamCollection'
     if len(sys.argv) < 2:
-        sys.exit('Usage: %s database-name' % sys.argv[0])
+        print('Using default database: %s' % database_path)
+    else:
+        database_path = sys.argv[1]
 
-    if not os.path.exists(sys.argv[1]):
-        sys.exit('ERROR: Database %s was not found!' % sys.argv[1])
+    if not os.path.exists(database_path):
+        sys.exit('ERROR: Database "%s" was not found!' % database_path)
 
-    database = open(sys.argv[1],'r').readlines()
+
+    database = open(database_path,'r').readlines()
     #print database.readlines()
 
     k_fold_cross_validation(database, 100)
