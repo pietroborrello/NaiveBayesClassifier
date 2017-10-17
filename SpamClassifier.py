@@ -7,6 +7,7 @@ import random
 import time
 import itertools
 import functools
+import re
 
 class SpamClassifier(object):
 
@@ -31,7 +32,7 @@ class SpamClassifier(object):
             l = line.split('\t',1)
             doc_class = l[0]
             doc = l[1].strip()
-            words = doc.split(' ')
+            words = re.split('\W+', doc.lower().strip())
 
             if doc_class not in self.docs:
                 #init set of classes
@@ -78,7 +79,7 @@ class SpamClassifier(object):
         #print self.vocabulary
 
     def classify(self, doc):
-        words = doc.split(' ')
+        words = re.split('\W+', doc.lower().strip())
         hypotesys = 0
         max_prob = -1
         for doc_class in self.classes:
