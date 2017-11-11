@@ -133,7 +133,7 @@ def k_fold_cross_validation(data, k):
 def main():
     database_path = 'smsspamcollection/SMSSpamCollection'
     if len(sys.argv) < 2:
-        print('Using default database: %s' % database_path)
+        print('Usage: SpamClassifier.py dataset\nUsing default database: %s' % database_path)
     else:
         database_path = sys.argv[1]
 
@@ -142,13 +142,9 @@ def main():
 
 
     database = open(database_path,'r').readlines()
-    #print database.readlines()
 
-    k_fold_cross_validation(database, 100)
+    k_fold_cross_validation(database, 10)
 
-    #spam.learn(database)
-    #doc = 'I\'m gonna be hhome soon and i don\'t want you and me to talk about you and this stuff anymore tonight, k? I\'ve cried enough todayyyyyyyy.'
-    #print spam.classify(doc)
 
 
 
