@@ -104,6 +104,10 @@ def k_fold_cross_validation(data, k):
         datasets[i].append(data.pop())
 
     accuracy = 0
+    tp = 0
+    tn = 0
+    fp = 0
+    fn = 0
     for i in range(k):
         correct = 0
         done = 0
@@ -116,13 +120,27 @@ def k_fold_cross_validation(data, k):
             done += 1
             expected = test.split('\t')[0]
             doc = test.split('\t')[1].strip()
-            if spam.classify(doc) == expected:
+            predicted = spam.classify(doc)
+            if predicted == expected:
                 correct += 1
+            if predicted == '1' and expected == '1':
+                tp += 1
+            elif predicted == '-1' and expected == '-1':
+                tn += 1
+            elif predicted == '1' and expected == '-1':
+                fp += 1
+            elif predicted == '-1' and expected == '1':
+                fn += 1
+    
         accuracy += (correct / done)
         sys.stdout.write('\r|'+('='*i)+(' '*(k-i-1)+'|'))
         sys.stdout.flush()
 
     print ('\n[+] K-Fold accuracy:', accuracy / k)
+    print("True Positive:", tp / (tp + fn))
+    print("True Negative:", tn / (fp + tn))
+    print("False Positive:", fp / (fp + tn))
+    print("False Negative:", fn / (fn + tp))
 
 
 
