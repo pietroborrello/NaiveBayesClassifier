@@ -1,4 +1,4 @@
-# SMS-BayesClassifier
+# NaiveBayesClassifier
 Naive Bayes Classifier based on multinomial distribution, evaluated by k-fold cross validation
 
 ## Usage
