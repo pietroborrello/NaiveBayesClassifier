@@ -9,7 +9,7 @@ import itertools
 import functools
 import re
 
-class SpamClassifier(object):
+class NaiveBayesClassifier(object):
 
     '''
     self.vocabulary = map of all words -> num of occurrences in each class (map class->num)
@@ -70,7 +70,7 @@ class SpamClassifier(object):
         for word in self.vocabulary:
             for doc_class in self.classes:
                 if doc_class not in self.vocabulary[word]:
-                    self.vocabulary[word][doc_class] = 0;
+                    self.vocabulary[word][doc_class] = 0
                 self.vocabulary[word][doc_class] = (self.vocabulary[word][doc_class] + 1)/(self.words_num[doc_class] + voc_size)
 
     def learn(self, database):
@@ -114,7 +114,7 @@ def k_fold_cross_validation(data, k):
 
         training = itertools.chain.from_iterable([datasets[j] for j in filter(lambda j: j != i, range(k))])
         testing = datasets[i]
-        spam = SpamClassifier()
+        spam = NaiveBayesClassifier()
         spam.learn(training)
         for test in testing:
             done += 1
@@ -123,6 +123,7 @@ def k_fold_cross_validation(data, k):
             predicted = spam.classify(doc)
             if predicted == expected:
                 correct += 1
+            ''' DATASET DEPENDENT what is a false positive in your dataset?
             if predicted == '1' and expected == '1':
                 tp += 1
             elif predicted == '-1' and expected == '-1':
@@ -131,16 +132,19 @@ def k_fold_cross_validation(data, k):
                 fp += 1
             elif predicted == '-1' and expected == '1':
                 fn += 1
+            '''
     
         accuracy += (correct / done)
         sys.stdout.write('\r|'+('='*i)+(' '*(k-i-1)+'|'))
         sys.stdout.flush()
 
     print ('\n[+] K-Fold accuracy:', accuracy / k)
+    '''DATASET DEPENDENT
     print("True Positive:", tp / (tp + fn))
     print("True Negative:", tn / (fp + tn))
     print("False Positive:", fp / (fp + tn))
     print("False Negative:", fn / (fn + tp))
+    '''
 
 
 
@@ -151,7 +155,7 @@ def k_fold_cross_validation(data, k):
 def main():
     database_path = 'smsspamcollection/SMSSpamCollection'
     if len(sys.argv) < 2:
-        print('Usage: SpamClassifier.py dataset\nUsing default database: %s' % database_path)
+        print('Usage: NaiveBayesClassifier.py [dataset]\nUsing default database: %s' % database_path)
     else:
         database_path = sys.argv[1]
 
